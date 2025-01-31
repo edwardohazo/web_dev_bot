@@ -11,7 +11,22 @@ const PORT = process.env.PORT || 3000; // Use the port from .env or default to 3
 
 // Middleware
 app.use(express.json()); // Parse JSON requests
-app.use(cors()); // Enable CORS for all routes
+const allowedOrigins = ['https://egj-react-app.netlify.app']; // Add your React app domain here
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST'],  // Add other methods if needed
+  allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
+};
+
+app.use(cors(corsOptions)); // Apply CORS with the custom configuration
+
 
 // Environment variables
 const GROQ_API_BASE_URL = process.env.GROQ_API_BASE_URL; // Set in .env
