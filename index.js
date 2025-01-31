@@ -25,8 +25,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
 };
 
-// app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
-app.use(cors()); // Apply CORS with the custom configuration On Development
+app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
+// app.use(cors()); // Apply CORS with the custom configuration On Development
 
 
 // Environment variables
