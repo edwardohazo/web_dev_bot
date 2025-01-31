@@ -131,6 +131,16 @@ const defaultContext = [
 ];
 
 // Route to handle requests to the bot agent
+app.post("/api/wake-up", async (req, res) => {
+
+    // Send the bot's response to the client
+    res.json({
+      response: "On render is awake!"
+    });
+});
+
+
+// Route to handle requests to the bot agent
 app.post("/api/prompt", async (req, res) => {
   const { prompt, userId } = req.body;
 
