@@ -25,8 +25,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
 };
 
-app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
-// app.use(cors()); // Apply CORS with the custom configuration On Development
+// app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
+app.use(cors()); // Apply CORS with the custom configuration On Development
 
 
 // Environment variables
@@ -132,7 +132,7 @@ const defaultContext = [
 ];
 
 // Route to handle requests to the bot agent
-app.get("/api/wake-up", async (req, res) => {
+app.post("/api/wake-up", async (req, res) => {
     // Send the bot's response to the client
     res.json({
       response: "On render is awake!"
@@ -147,7 +147,7 @@ app.post("/api/prompt", async (req, res) => {
   if (!userId) {
     return res.status(400).json({ error: "userId is required to track conversations." });
   }
-
+http://localhost:3000/api/wake-up
   try {
     // Initialize or retrieve the user's conversation history
     if (!conversations[userId]) {
