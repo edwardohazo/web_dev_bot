@@ -51,7 +51,7 @@ const defaultContext = [
   },
   {
     role: "system",
-    content: "Eduardo Jasso is an independent frontend web developer based in Guadalajara, Jalisco, Mexico. With a great passion for interface design and a strong skill in programming, he has worked on various web development projects, especially in creating dynamic and functional websites, optimizing user experiences (UX/UI), and integrating innovative solutions for his clients.",
+    content: "Eduardo Jasso is an independent frontend web developer born on June 21, 1987, in Guadalajara, Jalisco, Mexico. At 37 years old, he brings a great passion for interface design and a strong skill in programming. Eduardo has worked on various web development projects, especially in creating dynamic and functional websites, optimizing user experiences (UX/UI), and integrating innovative solutions for his clients.",
   },
   {
     role: "system",
@@ -147,7 +147,7 @@ app.post("/api/prompt", async (req, res) => {
   if (!userId) {
     return res.status(400).json({ error: "userId is required to track conversations." });
   }
-http://localhost:3000/api/wake-up
+
   try {
     // Initialize or retrieve the user's conversation history
     if (!conversations[userId]) {
