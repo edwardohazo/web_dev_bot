@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000; // Use the port from .env or default to 3
 
 // Middleware
 app.use(express.json()); // Parse JSON requests
-const allowedOrigins = ['https://egj-react-app.netlify.app']; // Add your React app domain here
+const allowedOrigins = ['https://egj-react-app.netlify.app']; // On Production
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -25,7 +25,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
 };
 
-app.use(cors(corsOptions)); // Apply CORS with the custom configuration
+// app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
+app.use(cors()); // Apply CORS with the custom configuration On Development
 
 
 // Environment variables
@@ -131,8 +132,7 @@ const defaultContext = [
 ];
 
 // Route to handle requests to the bot agent
-app.post("/api/wake-up", async (req, res) => {
-
+app.get("/api/wake-up", async (req, res) => {
     // Send the bot's response to the client
     res.json({
       response: "On render is awake!"
