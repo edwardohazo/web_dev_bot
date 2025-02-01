@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
+import { WebSocketServer } from "ws";
 import Groq from "groq-sdk";
 
 dotenv.config(); // Load environment variables from .env file
@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000; // Use the port from .env or default to 3000
 
 // Middleware
-app.use(express.json()); // Parse JSON requests
+app.use(express.json());
 const allowedOrigins = ['https://egj-react-app.netlify.app']; // On Production
 
 const corsOptions = {
@@ -25,9 +25,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
 };
 
-// app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
-app.use(cors()); // Apply CORS with the custom configuration On Development
-
+app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
 
 // Environment variables
 const GROQ_API_BASE_URL = process.env.GROQ_API_BASE_URL; // Set in .env
@@ -131,16 +129,19 @@ const defaultContext = [
   }
 ];
 
-// Route to handle requests to the bot agent
+// Function to communicate with the GROQ API
+async function getGroqChatCompletion(context) {
+  return groq.chat.completions.create({
+    messages: context,
+    model: "llama-3.3-70b-versatile",
+  });
+}
+
+// Route to handle requests to the bot agent via HTTP
 app.post("/api/wake-up", async (req, res) => {
-    // Send the bot's response to the client
-    res.json({
-      response: "On render is awake!"
-    });
+  res.json({ response: "On render is awake!" });
 });
 
-
-// Route to handle requests to the bot agent
 app.post("/api/prompt", async (req, res) => {
   const { prompt, userId } = req.body;
 
@@ -151,50 +152,63 @@ app.post("/api/prompt", async (req, res) => {
   try {
     // Initialize or retrieve the user's conversation history
     if (!conversations[userId]) {
-      conversations[userId] = []; // Create a new conversation if it doesn't exist
+      conversations[userId] = [];
     }
 
     const userConversation = conversations[userId];
-
-    // Add the user's message to the conversation history
     userConversation.push({ role: "user", content: prompt });
 
-    // Combine the default context with the user's conversation history
     const context = [...defaultContext, ...userConversation];
 
-    // Generate the bot's response
     const chatCompletion = await getGroqChatCompletion(context);
 
     if (!chatCompletion) {
       return res.status(500).json({ error: "Failed to get a response from the GROQ API." });
     }
 
-    // Extract the bot's response
     const botResponse = chatCompletion.choices[0].message.content;
-
-    // Add the bot's response to the conversation history
     userConversation.push({ role: "assistant", content: botResponse });
 
-    // Send the bot's response to the client
-    res.json({
-      prompt,
-      botResponse,
-    });
+    res.json({ prompt, botResponse });
   } catch (error) {
     console.error("Error interacting with GROQ API:", error);
     res.status(500).json({ error: "An internal error occurred." });
   }
 });
 
-// Function to communicate with the GROQ API
-async function getGroqChatCompletion(context) {
-  return groq.chat.completions.create({
-    messages: context,
-    model: "llama-3.3-70b-versatile",
-  });
-}
+// WebSocket server for chat communication
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
-// Start the Express server
-app.listen(PORT, () => {
-  console.log(`Bot agent is running at http://localhost:${PORT}`);
+const wss = new WebSocketServer({ server });
+
+wss.on("connection", (ws) => {
+  console.log("New client connected");
+
+  ws.on("message", async (message) => {
+    const { userId, prompt } = JSON.parse(message);
+    console.log(`Received message from user ${userId}: ${prompt}`);
+
+    try {
+      // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {
+        const response = await fetch("https://egj-react-app.netlify.app//api/prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, userId }),
+      });
+
+      if (!response.ok) throw new Error("Server error");
+
+      const data = await response.json();
+      ws.send(JSON.stringify({ botResponse: data.botResponse }));
+    } catch (error) {
+      console.error(error);
+      ws.send(JSON.stringify({ botResponse: "Error processing request" }));
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
 });
