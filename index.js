@@ -193,7 +193,7 @@ wss.on("connection", (ws) => {
 
     try {
       // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {   // On development
-        const response = await fetch("https://egj-react-app.netlify.app//api/prompt", {  // On Production
+        const response = await fetch("https://egj-react-app.netlify.app/api/prompt", {  // On Production
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, userId }),
