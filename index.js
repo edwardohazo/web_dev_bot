@@ -181,43 +181,30 @@ const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-app.post("/api/wake-up", async (req, res) => {
-  if (req.body.message === 'wake up!') {
-      // Web Sockets Conection After On-render UP!
-      const wss = new WebSocketServer({ server });
+// Web Sockets Conection
+const wss = new WebSocketServer({ server });
 
-      wss.on("connection", (ws) => {
-        console.log("New client connected");
-
-        ws.on("message", async (message) => {
-          const { userId, prompt } = JSON.parse(message);
-          console.log(`Received message from user ${userId}: ${prompt}`);
-
-          try {
-            // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {   // On development ***
-              const response = await fetch("https://web-dev-bot.onrender.com/api/prompt", {  // On Production ***
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ prompt, userId }),
-            });
-
-            if (!response.ok) throw new Error("Server error");
-
-            const data = await response.json();
-            ws.send(JSON.stringify({ botResponse: data.botResponse }));
-          } catch (error) {
-            console.error(error);
-            ws.send(JSON.stringify({ botResponse: "Error processing request" }));
-          }
-        });
-
-        ws.on("close", () => {
-          console.log("Client disconnected");
-        });
+wss.on("connection", (ws) => {
+  console.log("New client connected");
+  ws.on("message", async (message) => {
+    const { userId, prompt } = JSON.parse(message);
+    console.log(`Received message from user ${userId}: ${prompt}`);
+    try {
+      // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {   // On development ***
+        const response = await fetch("https://web-dev-bot.onrender.com/api/prompt", {  // On Production ***
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, userId }),
       });
-      res.json({ response: "On render is awake!" });
-  } else {
-    res.json({ response: "On render is not awake!" });
-  }
-});
-
+      if (!response.ok) throw new Error("Server error");
+      const data = await response.json();
+      ws.send(JSON.stringify({ botResponse: data.botResponse }));
+    } catch (error) {
+      console.error(error);
+      ws.send(JSON.stringify({ botResponse: "Error processing request" }));
+    }
+  });
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
+});      
