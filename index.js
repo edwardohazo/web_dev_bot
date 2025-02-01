@@ -25,8 +25,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
 };
 
-app.use(cors(corsOptions)); // On production
-// app.use(cors()); On Development
+app.use(cors(corsOptions)); // On production ***
+// app.use(cors()); // On Development ***
 
 // Environment variables
 const GROQ_API_BASE_URL = process.env.GROQ_API_BASE_URL; // Set in .env
@@ -138,11 +138,6 @@ async function getGroqChatCompletion(context) {
   });
 }
 
-// Route to handle requests to the bot agent via HTTP
-app.post("/api/wake-up", async (req, res) => {
-  res.json({ response: "On render is awake!" });
-});
-
 app.post("/api/prompt", async (req, res) => {
   const { prompt, userId } = req.body;
 
@@ -182,34 +177,43 @@ const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-const wss = new WebSocketServer({ server });
+app.post("/api/wake-up", async (req, res) => {
+  if (req.body.message === 'wake up!') {
+      // Web Sockets Conection After On-render UP!
+      const wss = new WebSocketServer({ server });
 
-wss.on("connection", (ws) => {
-  console.log("New client connected");
+      wss.on("connection", (ws) => {
+        console.log("New client connected");
 
-  ws.on("message", async (message) => {
-    const { userId, prompt } = JSON.parse(message);
-    console.log(`Received message from user ${userId}: ${prompt}`);
+        ws.on("message", async (message) => {
+          const { userId, prompt } = JSON.parse(message);
+          console.log(`Received message from user ${userId}: ${prompt}`);
 
-    try {
-      // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {   // On development
-        const response = await fetch("https://web-dev-bot.onrender.com/api/prompt", {  // On Production
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, userId }),
+          try {
+            // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {   // On development ***
+              const response = await fetch("https://web-dev-bot.onrender.com/api/prompt", {  // On Production ***
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ prompt, userId }),
+            });
+
+            if (!response.ok) throw new Error("Server error");
+
+            const data = await response.json();
+            ws.send(JSON.stringify({ botResponse: data.botResponse }));
+          } catch (error) {
+            console.error(error);
+            ws.send(JSON.stringify({ botResponse: "Error processing request" }));
+          }
+        });
+
+        ws.on("close", () => {
+          console.log("Client disconnected");
+        });
       });
-
-      if (!response.ok) throw new Error("Server error");
-
-      const data = await response.json();
-      ws.send(JSON.stringify({ botResponse: data.botResponse }));
-    } catch (error) {
-      console.error(error);
-      ws.send(JSON.stringify({ botResponse: "Error processing request" }));
-    }
-  });
-
-  ws.on("close", () => {
-    console.log("Client disconnected");
-  });
+      res.json({ response: "On render is awake!" });
+  } else {
+    res.json({ response: "On render is not awake!" });
+  }
 });
+
