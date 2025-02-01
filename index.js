@@ -25,7 +25,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Add headers if needed
 };
 
-app.use(cors(corsOptions)); // Apply CORS with the custom configuration On Production
+app.use(cors(corsOptions)); // On production
+// app.use(cors()); On Development
 
 // Environment variables
 const GROQ_API_BASE_URL = process.env.GROQ_API_BASE_URL; // Set in .env
@@ -191,8 +192,8 @@ wss.on("connection", (ws) => {
     console.log(`Received message from user ${userId}: ${prompt}`);
 
     try {
-      // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {
-        const response = await fetch("https://egj-react-app.netlify.app//api/prompt", {
+      // const response = await fetch("http://localhost:" + PORT + "/api/prompt", {   // On development
+        const response = await fetch("https://egj-react-app.netlify.app//api/prompt", {  // On Production
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, userId }),
