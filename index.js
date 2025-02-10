@@ -201,7 +201,7 @@ wss.on("connection", (ws) => {
       ws.send(JSON.stringify({ botResponse: data.botResponse }));
     } catch (error) {
       console.error(error);
-      ws.send(JSON.stringify({ botResponse: "Error processing request" }));
+      ws.send(JSON.stringify({ botResponse: `Error processing request` }));
     }
   });
   ws.on("close", () => {
